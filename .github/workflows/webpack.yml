@@ -1,0 +1,126 @@
+name: Angular CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - staging
+      - qa
+  pull_request:
+    branches:
+      - main
+      - staging
+      - qa
+
+jobs:
+  test:
+    runs-on: self-hosted
+    
+    strategy:
+      matrix:
+        node-version: [18.x, 20.x, 22.x]
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+        shell: cmd
+      
+      - name: Run linting
+        run: npm run lint
+        shell: cmd
+      
+      - name: Run unit tests
+        run: npm run test-ci
+        shell: cmd
+
+  build:
+    runs-on: self-hosted
+    needs: test
+    if: success()
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+        shell: cmd
+      
+      - name: Build Angular application for QA
+        run: npm run build:qa
+        shell: cmd
+        if: github.ref == 'refs/heads/qa'
+      
+      - name: Build Angular application for Staging
+        run: npm run build:staging
+        shell: cmd
+        if: github.ref == 'refs/heads/staging'
+      
+      - name: Build Angular application for Production
+        run: npm run build:prod
+        shell: cmd
+        if: github.ref == 'refs/heads/main'
+      
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-files
+          path: dist/kbm/
+          retention-days: 1
+
+  deploy:
+    runs-on: self-hosted
+    needs: build
+    if: success() && github.event_name == 'push'
+    
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: build-files
+          path: dist/kbm/
+      
+      - name: Deploy to QA server
+        run: |
+          if exist "C:\inetpub\wwwroot\kbm-qa" rmdir /s /q "C:\inetpub\wwwroot\kbm-qa"
+          mkdir "C:\inetpub\wwwroot\kbm-qa"
+          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm-qa\" /E /I /Y
+        shell: cmd
+        if: github.ref == 'refs/heads/qa'
+      
+      - name: Deploy to Staging server
+        run: |
+          if exist "C:\inetpub\wwwroot\kbm-staging" rmdir /s /q "C:\inetpub\wwwroot\kbm-staging"
+          mkdir "C:\inetpub\wwwroot\kbm-staging"
+          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm-staging\" /E /I /Y
+        shell: cmd
+        if: github.ref == 'refs/heads/staging'
+      
+      - name: Deploy to Production server
+        run: |
+          if exist "C:\inetpub\wwwroot\kbm" rmdir /s /q "C:\inetpub\wwwroot\kbm"
+          mkdir "C:\inetpub\wwwroot\kbm"
+          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm\" /E /I /Y
+        shell: cmd
+        if: github.ref == 'refs/heads/main'
+      
+      - name: Restart IIS Application Pool
+        run: |
+          powershell -Command "Import-Module WebAdministration; Restart-WebAppPool -Name 'DefaultAppPool'"
+        shell: cmd
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/staging' || github.ref == 'refs/heads/qa'
