@@ -1,4 +1,4 @@
-name: Angular CI/CD Pipeline
+name: React CI/CD Pipeline 🚀
 
 on:
   push:
@@ -15,111 +15,111 @@ on:
 jobs:
   test:
     runs-on: self-hosted
-    
+    # 🧪 Run tests across different Node.js versions
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
-    
+
     steps:
-      - name: Checkout code
+      - name: Checkout code 📦
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js ${{ matrix.node-version }}
+
+      - name: Setup Node.js ${{ matrix.node-version }}  NodeJS
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
           cache: 'npm'
-      
-      - name: Install dependencies
+
+      - name: Install dependencies ⬇️
         run: npm ci
         shell: cmd
-      
-      - name: Run linting
+
+      - name: Run linting 🔍
         run: npm run lint
         shell: cmd
-      
-      - name: Run unit tests
-        run: npm run test-ci
+
+      - name: Run unit tests 📊
+        run: npm test -- --watchAll=false
         shell: cmd
 
   build:
     runs-on: self-hosted
     needs: test
-    if: success()
-    
+    if: success() # Only build if tests pass ✅
+
     steps:
-      - name: Checkout code
+      - name: Checkout code 📦
         uses: actions/checkout@v4
-      
-      - name: Setup Node.js
+
+      - name: Setup Node.js 🛠️
         uses: actions/setup-node@v4
         with:
           node-version: '20.x'
           cache: 'npm'
-      
-      - name: Install dependencies
+
+      - name: Install dependencies ⬇️
         run: npm ci
         shell: cmd
-      
-      - name: Build Angular application for QA
-        run: npm run build:qa
+
+      - name: Build React application for QA ✨
+        run: npm run build
         shell: cmd
         if: github.ref == 'refs/heads/qa'
-      
-      - name: Build Angular application for Staging
-        run: npm run build:staging
+
+      - name: Build React application for Staging 🚧
+        run: npm run build
         shell: cmd
         if: github.ref == 'refs/heads/staging'
-      
-      - name: Build Angular application for Production
-        run: npm run build:prod
+
+      - name: Build React application for Production 🚀
+        run: npm run build
         shell: cmd
         if: github.ref == 'refs/heads/main'
-      
-      - name: Upload build artifacts
+
+      - name: Upload build artifacts ⬆️
         uses: actions/upload-artifact@v4
         with:
-          name: build-files
-          path: dist/kbm/
+          name: react-build-files
+          path: build/ # Adjust to 'dist/' or your actual build output directory
           retention-days: 1
 
   deploy:
     runs-on: self-hosted
     needs: build
-    if: success() && github.event_name == 'push'
-    
+    if: success() && github.event_name == 'push' # Only deploy on successful pushes 🚀
+
     steps:
-      - name: Download build artifacts
+      - name: Download build artifacts ⬇️
         uses: actions/download-artifact@v4
         with:
-          name: build-files
-          path: dist/kbm/
-      
-      - name: Deploy to QA server
+          name: react-build-files
+          path: build/
+
+      - name: Deploy to QA server 🧪
         run: |
-          if exist "C:\inetpub\wwwroot\kbm-qa" rmdir /s /q "C:\inetpub\wwwroot\kbm-qa"
-          mkdir "C:\inetpub\wwwroot\kbm-qa"
-          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm-qa\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\react-app-qa" rmdir /s /q "C:\inetpub\wwwroot\react-app-qa"
+          mkdir "C:\inetpub\wwwroot\react-app-qa"
+          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app-qa\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/qa'
-      
-      - name: Deploy to Staging server
+
+      - name: Deploy to Staging server  staging
         run: |
-          if exist "C:\inetpub\wwwroot\kbm-staging" rmdir /s /q "C:\inetpub\wwwroot\kbm-staging"
-          mkdir "C:\inetpub\wwwroot\kbm-staging"
-          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm-staging\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\react-app-staging" rmdir /s /q "C:\inetpub\wwwroot\react-app-staging"
+          mkdir "C:\inetpub\wwwroot\react-app-staging"
+          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app-staging\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/staging'
-      
-      - name: Deploy to Production server
+
+      - name: Deploy to Production server 🚀
         run: |
-          if exist "C:\inetpub\wwwroot\kbm" rmdir /s /q "C:\inetpub\wwwroot\kbm"
-          mkdir "C:\inetpub\wwwroot\kbm"
-          xcopy ".\dist\kbm\*" "C:\inetpub\wwwroot\kbm\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\react-app" rmdir /s /q "C:\inetpub\wwwroot\react-app"
+          mkdir "C:\inetpub\wwwroot\react-app"
+          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/main'
-      
-      - name: Restart IIS Application Pool
+
+      - name: Restart IIS Application Pool 🔄
         run: |
           powershell -Command "Import-Module WebAdministration; Restart-WebAppPool -Name 'DefaultAppPool'"
         shell: cmd
