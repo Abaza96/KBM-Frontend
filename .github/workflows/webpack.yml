@@ -15,7 +15,6 @@ on:
 jobs:
   test:
     runs-on: self-hosted
-    # 🧪 Run tests across different Node.js versions
     strategy:
       matrix:
         node-version: [18.x, 20.x, 22.x]
@@ -68,14 +67,14 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: react-build-files
-          path: dist/ # Or 'dist/', whichever is correct
+          path: dist/
           retention-days: 1
 
 
   deploy:
     runs-on: self-hosted
     needs: build
-    if: success() && github.event_name == 'push' # Only deploy on successful pushes 🚀
+    if: success() && github.event_name == 'push'
 
     steps:
       - name: Download build artifacts ⬇️
@@ -86,25 +85,25 @@ jobs:
 
       - name: Deploy to QA server 🧪
         run: |
-          if exist "C:\inetpub\wwwroot\react-app-qa" rmdir /s /q "C:\inetpub\wwwroot\react-app-qa"
-          mkdir "C:\inetpub\wwwroot\react-app-qa"
-          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app-qa\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\kbm-app-qa" rmdir /s /q "C:\inetpub\wwwroot\kbm-app-qa"
+          mkdir "C:\inetpub\wwwroot\kbm-app-qa"
+          xcopy ".\dist\*" "C:\inetpub\wwwroot\kbm-app-qa\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/qa'
 
       - name: Deploy to Staging server  staging
         run: |
-          if exist "C:\inetpub\wwwroot\react-app-staging" rmdir /s /q "C:\inetpub\wwwroot\react-app-staging"
-          mkdir "C:\inetpub\wwwroot\react-app-staging"
-          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app-staging\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\kbm-app-staging" rmdir /s /q "C:\inetpub\wwwroot\kbm-app-staging"
+          mkdir "C:\inetpub\wwwroot\kbm-app-staging"
+          xcopy ".\dist\*" "C:\inetpub\wwwroot\kbm-app-staging\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/staging'
 
       - name: Deploy to Production server 🚀
         run: |
-          if exist "C:\inetpub\wwwroot\react-app" rmdir /s /q "C:\inetpub\wwwroot\react-app"
-          mkdir "C:\inetpub\wwwroot\react-app"
-          xcopy ".\build\*" "C:\inetpub\wwwroot\react-app\" /E /I /Y
+          if exist "C:\inetpub\wwwroot\kbm-app" rmdir /s /q "C:\inetpub\wwwroot\kbm-app"
+          mkdir "C:\inetpub\wwwroot\kbm-app"
+          xcopy ".\dist\*" "C:\inetpub\wwwroot\kbm-app\" /E /I /Y #
         shell: cmd
         if: github.ref == 'refs/heads/main'
 
