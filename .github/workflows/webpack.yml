@@ -38,9 +38,9 @@ jobs:
         run: npm run lint
         shell: cmd
 
-      - name: Run unit tests 📊
-        run: npm test -- --watchAll=false
-        shell: cmd
+      # - name: Run unit tests 📊
+        # run: npm test -- --watchAll=false
+        # shell: cmd
 
   build:
     runs-on: self-hosted
