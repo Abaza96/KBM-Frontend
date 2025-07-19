@@ -3,7 +3,7 @@ import { Outlet } from 'react-router-dom';
 const MainLayout = () => {
   return (
     <div>
-      {/* Future header, footer, or sidebar can be added here */}
+      <p> I'ma a Navbar </p>
       <Outlet />
     </div>
   );

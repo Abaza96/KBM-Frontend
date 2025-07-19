@@ -1,11 +1,11 @@
 import "./index.css";
 import "./App.css";
-import LessonsList from "./features/lessons/components/LessonsList";
+import { AppRoutes } from "./core/router/AppRoutes";
 
 function App() {
   return (
     <>
-      <LessonsList />
+      <AppRoutes />
     </>
   );
 }
