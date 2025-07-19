@@ -103,7 +103,7 @@ jobs:
         run: |
           if exist "C:\kbm-app" rmdir /s /q "C:\kbm-app"
           mkdir "C:\kbm-app"
-          xcopy ".\dist\*" "C:\kbm-app\" /E /I /Y #
+          xcopy ".\dist\*" "C:\kbm-app\" /E /I /Y
         shell: cmd
         if: github.ref == 'refs/heads/main'
 
