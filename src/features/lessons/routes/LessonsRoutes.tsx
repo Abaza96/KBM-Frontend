@@ -1,15 +1,15 @@
 import { Navigate } from "react-router-dom";
-import MainLayout from "../../../layouts/MainLayout";
+import LessonsLayout from "../layouts/LessonsLayout";
 
-export const lessonsRouter = [
-    {
-        path: '/',
-        element: <MainLayout />,
-        children: [
-           { path: '', element: <Navigate to="/lessons" /> },
-        //    { path: 'lessons', element: <LessonLayout /> },
-        //    { path: 'lessons-learned', element: <LearnedLessonsLayout /> },
-        //    { path: 'procedures', element: <ProceduresLayout /> },
-        ],
-    },
-]
+// import LessonsListPage from "../pages/LessonsListPage";
+// import LessonDetailPage from "../pages/LessonDetailPage";
+
+export const lessonsRouter = {
+  path: "/",
+  element: <LessonsLayout />,
+  children: [
+    { path: "", element: <Navigate to="lessons" replace /> },
+    //   { path: 'lessons', element: <LessonsListPage /> },
+    //   { path: 'lessons/:id', element: <LessonDetailPage /> },
+  ],
+};
